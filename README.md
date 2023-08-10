@@ -38,12 +38,13 @@ Migração de um ambiente On-premisse para a nuvem AWS.
 - Balanceamento de carga com Health Check
 - Segurança – liberar o mínimo possível
 ## Ilustração da arquitetura atual:
-![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/f831963b-f036-4ee2-ae3c-eaeae6f35438)
+![Captura de tela 2023-08-10 143205](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/f8bceebb-cabd-4f8a-8fc7-647ee95f79a1)
 
 ---
 
 ## Ilustração da proposta de solução arquitetura: 
-![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/faa3e58b-33b9-439c-8d63-bbe2eeded846)
+![Captura de tela 2023-08-10 154411](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/fad54f4b-6bad-4f73-a011-5450c17e9591)
+
 
 ## Descrição geral da arquitetura: 
 O acesso à aplicação é configurado no domínio do site no **Rota 53, o serviço de DNS da AWS**. O tráfego de entrada passa por um **WAF – Web Application Firewall**, que é uma camada a mais de segurança para o ambiente. O tráfego é direcionado para um **ALB – Application Load Balancer**, que o distribui entre as máquinas do cluster Kubernetes. O cluster Kubernetes é implementado com o serviço de **EKS – Elastic Kubernetes Service**, o qual gerencia o cluster e contém um **AutoScaling** para as máquinas. As máquinas do cluster rodam a aplicação. Elas se conectam ao banco de dados da aplicação, o **Amazon Aurora RDS**. Os snapshots de backup do RDS são armazenados num **Bucket S3 Glacier Instant Retrieval**. Para comunicação externa, as máquinas do cluster contam com o **NAT Gateway**, o elemento que possibilita conexão externa para elas. O ambiente ainda oferece um **EFS – Elastic File System**, o serviço de NFS da Amazon, que é montado nas máquinas armazenando arquivos compartilhados da aplicação. Os estáticos do site são armazenados num **Bucket S3 Standard**.
@@ -93,7 +94,7 @@ db.t4g.medium (2 vCPU; 4GB de memória RAM;)
 1000GB de exportação de snapshots por mês
 
 ## Custos finais:
-![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/7279ade2-1367-46ad-8b21-0b903e487733)
+![Captura de tela 2023-08-10 143257](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/f2f0d165-32d3-4e35-ad13-b34273a2f8cc)
 
 #### Link para consulta dos serviços:
 https://calculator.aws/#/estimate?id=b3bbc7e219f7d2acde09c698fe53503eba42d336 
