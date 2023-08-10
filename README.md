@@ -1,10 +1,34 @@
 # Arquiteura-TrabalhoFinal-Compass
+## Case:
+Nós somos da empresa "Fast Engineering S/A"
+e gostaríamos de uma solução dos senhores(as),
+que fazem parte da empresa terceira "TI
+SOLUÇÕES INCRÍVEIS".
+Nosso eCommerce está crescendo e a solução
+atual não está atendendo mais a alta demanda de
+acessos e compras que estamos tendo.
+Desde o Início do ano os acessos e compras
+estão crescendo 20% a cada mês.
+Atualmente usamos:
+* 01 servidor para Banco de Dados Mysql;
+* 01 servidor para a aplicação utilizando REACT;
+* 01 servidor de web Server e que armazena
+estáticos como fotos e links.
+Nosso pedido é um ORÇAMENTO com:
+** Seguir o modelo de apresentação PPT da
+Trilha de Estudo Objetivo Instruções
+CompassUOL.
+ESCOPO;
+ARQUITETURA DA NOVA SOLUÇÃO;
+VALORES;
+PRAZO DE ENTREGA;
+CRONOGRAMA MACRO DE ENTREGAS;
+Sobre a construção da arquitetura para o futuro
+website da nossa empresa, precisamos seguir as
+melhores práticas DevOps.
+
 ## Descrição da atividade:
-### Escopo:
-Escopo da atividade; o que vamos fazer no projeto; as atividades que serão executadas;
-Arquitetura da nova solução:
-Indicar a arquitetura atual do cliente; mostrar a nova arquitetura, com todo o ambiente planejado: 
-Requisitos para o ambiente:
+### Requisitos para o ambiente:
 - Kubernetes
 - Banco de dados PaaS 
 - Multi-AZ
@@ -12,16 +36,16 @@ Requisitos para o ambiente:
 - Resiliência de dados
 - Balanceamento de carga com Health Check
 - Segurança – liberar o mínimo possível
-(não deixar portas abertas desnecessariamente, dos pods, serviços, instancias...)
-*A nossa atuação nesse trabalho é como a de um arquiteto de soluções
-🡪 AWS Calculator – tirar print e pegar o link
-🡪 Versionamento no Github – simples; somente descrição textual da arquitetura
+## Ilustração da arquitetura atual:
+![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/f831963b-f036-4ee2-ae3c-eaeae6f35438)
+
 ---
-## Ilustração da arquitetura final 
+
+## Ilustração da proposta de solução arquitetura: 
 ![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/faa3e58b-33b9-439c-8d63-bbe2eeded846)
 
 ## Descrição geral da arquitetura: 
-O acesso à aplicação é configurado no domínio do site no **Rota 53, o serviço de DNS da AWS**. O tráfego de entrada passa por um **WAF – Web Application Firewall**, que é uma camada a mais de segurança para o ambiente. O tráfego é direcionado para um **ALB – Application Load Balancer**, que o distribui entre as máquinas do cluster Kubernetes. O cluster Kubernetes é implementado com o serviço de **EKS – Elastic Kubernetes Service**, o qual gerencia o cluster e contém um **AutoScaling** para as máquinas. As máquinas do cluster rodam a aplicação. Elas se conectam ao banco de dados da aplicação, que é uma instância **Amazon RDS**. Os snapshots de backup do RDS são armazenados num **Bucket S3 Glacier Instant Retrieval**. Para comunicação externa, as máquinas do cluster contam com o **NAT Gateway**, o elemento que possibilita conexão externa para elas. O ambiente ainda oferece um **EFS – Elastic File System**, o serviço de NFS da Amazon, que é montado nas máquinas armazenando arquivos compartilhados da aplicação. Os estáticos do site são armazenados num **Bucket S3 Standard**.
+O acesso à aplicação é configurado no domínio do site no **Rota 53, o serviço de DNS da AWS**. O tráfego de entrada passa por um **WAF – Web Application Firewall**, que é uma camada a mais de segurança para o ambiente. O tráfego é direcionado para um **ALB – Application Load Balancer**, que o distribui entre as máquinas do cluster Kubernetes. O cluster Kubernetes é implementado com o serviço de **EKS – Elastic Kubernetes Service**, o qual gerencia o cluster e contém um **AutoScaling** para as máquinas. As máquinas do cluster rodam a aplicação. Elas se conectam ao banco de dados da aplicação, o **Amazon Aurora RDS**. Os snapshots de backup do RDS são armazenados num **Bucket S3 Glacier Instant Retrieval**. Para comunicação externa, as máquinas do cluster contam com o **NAT Gateway**, o elemento que possibilita conexão externa para elas. O ambiente ainda oferece um **EFS – Elastic File System**, o serviço de NFS da Amazon, que é montado nas máquinas armazenando arquivos compartilhados da aplicação. Os estáticos do site são armazenados num **Bucket S3 Standard**.
 
 ### Camada de rede/entrada:
 - A resolução de DNS do site é feita com o Rota 53;
@@ -48,15 +72,27 @@ O acesso à aplicação é configurado no domínio do site no **Rota 53, o servi
 - Dentro da VPC existe: uma subnet pública, com rotas para um Internet Gateway. Ela contém o Bastion Host, o Nat gateway e Load Balancer; uma subnet privada, contendo os nodes do cluster EKS; uma subnet privada, contendo o banco de dados RDS.
 - O esquema de subnets é espelhado entre as duas AZs. Trata-se portanto de 6 subnets ao todo.
 
-#### RDS
-*Multi-AZ 🡺 é mantida uma cópia do banco de dados em outra AZ, é uma outra instância que fica em standby. Quando a instância primária falha, a segunda entra automaticamente em ação, com o mesmo endpoint da primeira.
-Burst capability (general purpose SSD – familia t) 🡺 quando o banco de dados está funcionando abaixo do limite, ele acumula créditos, os quais são usados em casos de picos de uso, evitando que se bata no limite e que se precise provisionar mais capacidade.
-Backup
-O RDS tem dois tipos de backup:
-Backups automáticos: com essa configuração é possível restaurar o banco de dados a um “point-in-time” definível de 1 a 35 dias.
-Snapshots manuais: são armazenados no Amazon S3; duram lá até que sejam deletados manualmente; o banco de dados pode ser restaurado a partir de um snapshot; é armazenado com redundância geográfica. (custo mais baixo)
-Escalabilidade:
-É possível escalar a capacidade do RDS sem fazer reboot; Elasticache;
-Com o RDS é possível criar Read Replicas do banco de dados: são replicas criadas com snapshots do banco em diferentes regiões, para diminuir risco de desastre e também para distribuir o tráfego de leitura.
-Failover de Azs duram em média 90 segundos.*
+### Banco de Dados:
+- O Amazon Aurora é um banco de dados relacional, desenvolvido pela AWS. Ele roda de maneira serverless(AWS cuida da infraestrutura) ou pode escolher uma instância e configurar manualmente.
+- Optamos pela escolha de rodá-lo em uma instância (t3.medium) com 300GB. Também adicionamos uma opção de 300GB de espaço adicional para back-up e 1000GB de exportação de snapshot mensal para o nosso Bucket S3 Glacier IA.
+- O serviço divide o volume de um banco de dados em blocos de 10 GB, espalhados por diferentes discos. Cada pedaço é replicado de seis maneiras em três zonas de disponibilidade da AWS (AZs)
+- Backup O Amazon Aurora realiza back-ups automatizados que podem ser armazenados em buckets S3 ou o espaço para armazenamento pode ser provisionado pela própria AWS. Também temos a opção das snapshots manuais, que são armazenados no Amazon S3, duram lá até que sejam deletados manualmente; o banco de dados pode ser restaurado a partir de um snapshot, que é armazenado com redundância geográfica(custo mais baixo). Quando o banco de dados está funcionando abaixo do limite, ele acumula créditos, os quais são usados durante picos de uso, evitando que chegue no limite armazenamento e que se precise provisionar mais capacidade. Com o Aurora é possível criar Read Replicas do banco de dados: são replicas criadas com snapshots do banco em diferentes regiões, para diminuir risco de desastre e também para distribuir o tráfego de leitura.
 
+## Especificações técnicas
+### Instâncias EC2 Worker Nodes:
+m6g.medium (1 vCPU; 4GB de memória RAM)
+20GB de volume EBS
+### Instância EC2 Bastion Host:
+t2.micro (1 vCPU; 1GB de memória RAM)
+### Banco de dados RDS Aurora:
+Aurora Standard
+db.t4g.medium (2 vCPU; 4GB de memória RAM;)
+300GB de armazenamento
+300GB de backup
+1000GB de exportação de snapshots por mês
+
+## Custos finais:
+![image](https://github.com/JuFick/Arquiteura-TrabalhoFinal-Compass/assets/132408071/7279ade2-1367-46ad-8b21-0b903e487733)
+
+#### Link para consulta dos serviços:
+https://calculator.aws/#/estimate?id=b3bbc7e219f7d2acde09c698fe53503eba42d336 
