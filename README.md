@@ -28,6 +28,7 @@ website da nossa empresa, precisamos seguir as
 melhores práticas DevOps.
 
 ## Descrição da atividade:
+Migração de um ambiente On-premisse para a nuvem AWS.
 ### Requisitos para o ambiente:
 - Kubernetes
 - Banco de dados PaaS 
